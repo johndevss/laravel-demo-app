@@ -36,6 +36,8 @@ RUN npm install && npm run build
 # Set permissions
 RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
 RUN chmod -R 775 /app/storage /app/bootstrap/cache
+RUN mkdir -p /app/storage/logs && chmod -R 777 /app/storage/logs
+
 
 EXPOSE 9000
 
