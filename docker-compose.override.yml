@@ -1,0 +1,10 @@
+# docker-compose.override.yml
+
+services:
+  app:
+    volumes:
+      - ./:/app
+
+  web:
+    volumes:
+      - ./:/app
