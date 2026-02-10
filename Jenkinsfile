@@ -22,7 +22,6 @@ pipeline {
                 script {
                     sh "rsync -avz -e 'ssh -o StrictHostKeyChecking=no' --exclude='.git' . ${TARGET_USER}@${TARGET_IP}:/tmp/${CONTAINER_NAME}_deploy"
                     sh "${REMOTE_CMD} 'docker cp /tmp/${CONTAINER_NAME}_deploy/. ${CONTAINER_NAME}:/app'"
-                    sh "${REMOTE_CMD} 'docker exec ${CONTAINER_NAME} chown -R www-data:www-data /app'"
                 }
             }
         }
@@ -33,6 +32,8 @@ pipeline {
                     sh """
                         ${REMOTE_CMD} "docker exec ${CONTAINER_NAME} bash -c '
                             git config --global --add safe.directory /app && \
+                            mkdir -p resources/views storage/framework/{sessions,views,cache} && \
+                            chown -R www-data:www-data /app && \
                             rm -rf bootstrap/cache/*.php && \
                             composer install --no-dev --optimize-autoloader --no-scripts && \
                             php artisan optimize:clear && \
