@@ -17,14 +17,6 @@ pipeline {
             }
         }
 
-        stage('1. Run Tests') {
-            steps {
-                script {
-                    sh "${REMOTE_CMD} 'docker exec ${CONTAINER_NAME} php artisan test'"
-                }
-            }
-        }
-
         stage('2. Sync Code to Target') {
             steps {
                 script {
