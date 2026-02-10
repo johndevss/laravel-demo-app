@@ -7,7 +7,7 @@ services:
     working_dir: /app
     volumes:
       - /app/vendor
-      - app/node_modules
+      - /app/node_modules
     networks:
       - pmasql_network
 
