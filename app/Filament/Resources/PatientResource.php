@@ -36,6 +36,7 @@ class PatientResource extends Resource
                     'cat' => 'Cat',
                     'dog' => 'Dog',
                     'rabbit' => 'Rabbit',
+                    'Jacob' => 'Jacob',
                 ])
                 ->required(true),
                 DatePicker::make('date_of_birth')
