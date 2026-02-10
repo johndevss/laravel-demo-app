@@ -2,14 +2,17 @@ pipeline {
     agent any
 
     environment {
+        TARGET_IP = "192.168.0.146"
+        TARGET_USER = "root" 
         CONTAINER_NAME = "laravel_demo_app"
+        REMOTE_CMD = "ssh -o StrictHostKeyChecking=no ${TARGET_USER}@${TARGET_IP}"
     }
 
     stages {
         stage('0. Environment Check') {
             steps {
                 script {
-                    sh "docker exec ${CONTAINER_NAME} php -v"
+                    sh "${REMOTE_CMD} 'docker exec ${CONTAINER_NAME} php -v'"
                 }
             }
         }
@@ -17,17 +20,17 @@ pipeline {
         stage('1. Run Tests') {
             steps {
                 script {
-                    echo "--- Running Unit and Feature Tests ---"
-                    sh "docker exec ${CONTAINER_NAME} php artisan test --parallel"
+                    sh "${REMOTE_CMD} 'docker exec ${CONTAINER_NAME} php artisan test --parallel'"
                 }
             }
         }
 
-        stage('2. Sync Code to Container') {
+        stage('2. Sync Code to Target') {
             steps {
                 script {
-                    sh "docker cp . ${CONTAINER_NAME}:/app"
-                    sh "docker exec ${CONTAINER_NAME} chown -R www-data:www-data /app"
+                    sh "rsync -avz -e 'ssh -o StrictHostKeyChecking=no' . ${TARGET_USER}@${TARGET_IP}:/tmp/${CONTAINER_NAME}_deploy"
+                    sh "${REMOTE_CMD} 'docker cp /tmp/${CONTAINER_NAME}_deploy/. ${CONTAINER_NAME}:/app'"
+                    sh "${REMOTE_CMD} 'docker exec ${CONTAINER_NAME} chown -R www-data:www-data /app'"
                 }
             }
         }
@@ -35,13 +38,17 @@ pipeline {
         stage('3. Update Dependencies & Clear Cache') {
             steps {
                 script {
-                    sh "docker exec ${CONTAINER_NAME} git config --global --add safe.directory '*'"
-                    sh "docker exec ${CONTAINER_NAME} composer install --no-dev --optimize-autoloader --no-scripts"
-                    sh "docker exec ${CONTAINER_NAME} rm -f bootstrap/cache/services.php bootstrap/cache/packages.php bootstrap/cache/config.php"
-                    sh "docker exec ${CONTAINER_NAME} php artisan optimize:clear"
-                    sh "docker exec ${CONTAINER_NAME} php artisan migrate --force"
-                    sh "docker exec ${CONTAINER_NAME} php artisan filament:upgrade"
-                    sh "docker exec ${CONTAINER_NAME} php artisan optimize"
+                    sh """
+                        ${REMOTE_CMD} "docker exec ${CONTAINER_NAME} bash -c '
+                            git config --global --add safe.directory \"*\" && \
+                            composer install --no-dev --optimize-autoloader --no-scripts && \
+                            rm -f bootstrap/cache/services.php bootstrap/cache/packages.php bootstrap/cache/config.php && \
+                            php artisan optimize:clear && \
+                            php artisan migrate --force && \
+                            php artisan filament:upgrade && \
+                            php artisan optimize
+                        '"
+                    """
                 }
             }
         }
@@ -49,10 +56,10 @@ pipeline {
 
     post {
         success {
-            echo "--- Deployment updated successfully for laravel_demo_app! ---"
+            echo "--- Deployment updated successfully for ${CONTAINER_NAME}! ---"
         }
         failure {
-            echo "--- Deployment failed---"
+            echo "--- Deployment failed ---"
         }
     }
 }
