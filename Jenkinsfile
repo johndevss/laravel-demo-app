@@ -1,3 +1,4 @@
+
 pipeline {
     agent any
 
@@ -30,8 +31,8 @@ pipeline {
         stage('3. Update Dependencies & Clear Cache') {
             steps {
                 script {
-                    sh """
-                        ${REMOTE_CMD} "docker exec ${CONTAINER_NAME} bash -c '
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no root@192.168.0.146 "docker exec laravel_demo_app bash -c '
                             git config --global --add safe.directory \"*\" && \
                             composer install --no-dev --optimize-autoloader --no-scripts && \
                             php artisan optimize:clear && \
@@ -39,7 +40,7 @@ pipeline {
                             php artisan filament:upgrade && \
                             php artisan optimize
                         '"
-                    """
+                    '''
                 }
             }
         }
