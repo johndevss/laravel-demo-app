@@ -20,7 +20,7 @@ pipeline {
         stage('1. Run Tests') {
             steps {
                 script {
-                    sh "${REMOTE_CMD} 'docker exec ${CONTAINER_NAME} php artisan test --parallel'"
+                    sh "${REMOTE_CMD} 'docker exec ${CONTAINER_NAME} php artisan test'"
                 }
             }
         }
