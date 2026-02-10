@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Owner extends Model
 {
+    //TEST
     public function patients(): HasMany
     {
         return $this->hasMany(Patient::class);
