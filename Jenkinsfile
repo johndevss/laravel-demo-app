@@ -33,6 +33,7 @@ pipeline {
                     sh """
                         ${REMOTE_CMD} "docker exec ${CONTAINER_NAME} bash -c '
                             git config --global --add safe.directory /app && \
+                            rm -rf bootstrap/cache/*.php && \
                             composer install --no-dev --optimize-autoloader --no-scripts && \
                             php artisan optimize:clear && \
                             php artisan migrate --force && \
